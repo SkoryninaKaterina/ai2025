@@ -40,3 +40,5 @@ result[15:45, :] = img[15:45, :]
 cv2.imshow("Тільки очі", result)
 cv2.waitKey(0)
 
+
+
