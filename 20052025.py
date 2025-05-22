@@ -41,6 +41,7 @@ blur = cv2.GaussianBlur(g_img, (3,3), sigmaX= 0)
 
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
 
+
 erode = cv2.erode(blur, kernel, iterations=2)
 mask = erode > 30
 
