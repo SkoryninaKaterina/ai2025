@@ -94,7 +94,7 @@
 
 
 
-import cv2
+# import cv2
 
 
 cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
@@ -104,30 +104,30 @@ cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
 #
 # cv2.imshow("frame", img)
 # cv2.waitKey(5000)
-
-width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))# Встановлення FPS
-print(width, height)
-writer = cv2.VideoWriter('data/lesson7/output.mp4',
-                          cv2.VideoWriter_fourcc(*'mp4v'),
-                          30,  # FPS
-                          (width, height)  # Розмір кадру
-                          )
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # # Зміна розміру кадру
-    resized_frame = cv2.resize(frame, None, fx=0.3, fy=0.3)
-
-    # Відображення кадру
-    cv2.imshow("Resized Frame", resized_frame)
-
-    writer.write(resized_frame)  # Запис кадру у відео
-
-    # Вихід з циклу при натисканні клавіші 'q'
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-writer.release()
+#
+# width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+# height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))# Встановлення FPS
+# print(width, height)
+# writer = cv2.VideoWriter('data/lesson7/output.mp4',
+#                           cv2.VideoWriter_fourcc(*'mp4v'),
+#                           30,  # FPS
+#                           (width, height)  # Розмір кадру
+#                           )
+# while True:
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+#
+#     # # Зміна розміру кадру
+#     resized_frame = cv2.resize(frame, None, fx=0.3, fy=0.3)
+#
+#     # Відображення кадру
+#     cv2.imshow("Resized Frame", resized_frame)
+#
+#     writer.write(resized_frame)  # Запис кадру у відео
+#
+#     # Вихід з циклу при натисканні клавіші 'q'
+#     if cv2.waitKey(1) & 0xFF == ord('q'):
+#         break
+#
+# writer.release()
