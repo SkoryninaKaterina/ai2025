@@ -92,7 +92,7 @@
 # Відкрийте відео з файлу data\lesson7\text.mp4. Проведіть
 # бінарізацію кадрів та збережіть в новий файл.
 
-
+g
 
 # import cv2
 
@@ -131,3 +131,83 @@ cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
 #         break
 #
 # writer.release()
+
+
+# # Завдання 2
+# Напишіть чат бота, який дає відповіді на питання
+# стосовно умов повернення товару.
+# Якщо користувач запитує щось інше, то відповідати що
+# немає інформації.
+# Застосуйте обмеження історії(можна десь 5 повідомлень)
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.prompts import PromptTemplate
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage,
+    SystemMessage,
+    trim_messages
+)
+
+import json
+import dotenv
+import os
+
+# завантажити api ключі з папки .env
+dotenv.load_dotenv()
+
+# отримати сам ключ
+api_key = os.getenv('GEMINI_API_KEY')
+
+llm = ChatGoogleGenerativeAI(
+    model='gemini-2.0-flash',  # назва моделі
+    google_api_key=api_key,  # ваша API
+)
+
+with open("data/lesson9/return_policy.txt", 'r', encoding='utf-8') as f:
+    return_policy = f.read()
+
+# шаблон для системного повідомлення
+
+massages = [
+    SystemMessage(
+        f""" ти є ввічливим помічником, твоя задача давати відповіді  на питання користувачів
+         використовуючи умови повернення товару.
+
+         якщо питання користувача не стосується умов повернення товару,
+          то сказати що ти не можеш дати відповідь на це питання.
+
+        ###  Умови повернення товару: {return_policy} ###
+
+"""
+    )
+]
+
+# створення трімер
+trimmer = trim_messages(
+    strategy='last',  # залишати останні повідомлення
+
+    token_counter=len,  # рахуємо кількість повідомлень
+    max_tokens=5,  # залишати максимум 5 повідомлення(System, AI, Human)
+
+    start_on='human',  # історія завжди починатиметься з HumanMessage
+    end_on='human',  # історія завжди закінчуватиметься з HumanMessage
+    include_system=True  # SystemMessage не чіпати
+)
+
+while True:
+    human = input("Введіть ваше питання: ")
+    if human == "":
+        break
+
+    human_massage = HumanMessage(content=human)
+
+    massages.append(human_massage)
+
+    massages = trimmer.invoke(massages)
+
+    # виклик моделі
+    response = llm.invoke(massages)
+    massages.append(response)
+
+    print(response.content)
