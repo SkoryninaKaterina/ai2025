@@ -92,12 +92,12 @@
 # Відкрийте відео з файлу data\lesson7\text.mp4. Проведіть
 # бінарізацію кадрів та збережіть в новий файл.
 
-g
+
 
 # import cv2
 
 
-cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
+# cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
 # ret, img = cap.read()
 # if not ret:
 #     print("Не вдалося відкрити відео.")
@@ -133,15 +133,14 @@ cap = cv2.VideoCapture(r'data\lesson7\text.mp4')
 # writer.release()
 
 
-# # Завдання 2
-# Напишіть чат бота, який дає відповіді на питання
-# стосовно умов повернення товару.
-# Якщо користувач запитує щось інше, то відповідати що
-# немає інформації.
-# Застосуйте обмеження історії(можна десь 5 повідомлень)
 
+
+
+# streamlit
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
+from langchain_community.utilities import GoogleSerperAPIWrapper
+from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import (
     HumanMessage,
     AIMessage,
@@ -149,65 +148,48 @@ from langchain_core.messages import (
     trim_messages
 )
 
+
 import json
 import dotenv
 import os
+import streamlit as st
 
-# завантажити api ключі з папки .env
-dotenv.load_dotenv()
+# Завдання 1
+# Створіть додаток, який симулює спілкування з відомою
+# людиною. З ким саме спілкуватися вводить користувач
 
-# отримати сам ключ
-api_key = os.getenv('GEMINI_API_KEY')
+secrets = st.secrets.get('GEMINI_API_KEY')
 
 llm = ChatGoogleGenerativeAI(
     model='gemini-2.0-flash',  # назва моделі
-    google_api_key=api_key,  # ваша API
+    google_api_key=secrets,    # ваша API
 )
 
-with open("data/lesson9/return_policy.txt", 'r', encoding='utf-8') as f:
-    return_policy = f.read()
+st.title("task 1")
 
-# шаблон для системного повідомлення
 
-massages = [
-    SystemMessage(
-        f""" ти є ввічливим помічником, твоя задача давати відповіді  на питання користувачів
-         використовуючи умови повернення товару.
+if 'massages' not in st.session_state:
+    st.session_state[ "massages" ] = [SystemMessage(
+        """ ти симулюєш спілкування з відомою людиною,
+        кого симулювать  вводить користувач
+        """
+    )]
 
-         якщо питання користувача не стосується умов повернення товару,
-          то сказати що ти не можеш дати відповідь на це питання.
+user_text = st.chat_input('Ваше повідомлення: ')
+if user_text:
+    user_text = HumanMessage(user_text)
+    st.session_state['massages'].append(user_text)
+    response = llm.invoke(st.session_state[ "massages" ])
+    st.session_state['massages'].append(response)
 
-        ###  Умови повернення товару: {return_policy} ###
+for massage in st.session_state['massages']:
+    if isinstance(massage, HumanMessage):
+        role = "user"
 
-"""
-    )
-]
+    elif isinstance(massage, AIMessage):
+        role = "bot"
+    else:
+        continue
 
-# створення трімер
-trimmer = trim_messages(
-    strategy='last',  # залишати останні повідомлення
-
-    token_counter=len,  # рахуємо кількість повідомлень
-    max_tokens=5,  # залишати максимум 5 повідомлення(System, AI, Human)
-
-    start_on='human',  # історія завжди починатиметься з HumanMessage
-    end_on='human',  # історія завжди закінчуватиметься з HumanMessage
-    include_system=True  # SystemMessage не чіпати
-)
-
-while True:
-    human = input("Введіть ваше питання: ")
-    if human == "":
-        break
-
-    human_massage = HumanMessage(content=human)
-
-    massages.append(human_massage)
-
-    massages = trimmer.invoke(massages)
-
-    # виклик моделі
-    response = llm.invoke(massages)
-    massages.append(response)
-
-    print(response.content)
+    with st.chat_message(role):
+        st.markdown(massage.content)
